@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans text-on-background bg-background;
+  }
+
+  h1 {
+    @apply text-h1 font-bold;
+  }
+
+  h2 {
+    @apply text-h2 font-bold;
+  }
+
+  h3 {
+    @apply text-h3 font-semibold;
+  }
+
+  input,
+  textarea {
+    @apply text-body-md;
+  }
+
+  button {
+    @apply text-button font-semibold transition-all;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-lg py-md bg-secondary-container text-on-secondary rounded-md hover:opacity-90 active:scale-95 shadow-orange;
+  }
+
+  .btn-secondary {
+    @apply px-lg py-md bg-primary-container text-on-primary rounded-md hover:opacity-90 active:scale-95;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-soft-navy p-lg;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-lg transition-shadow;
+  }
+
+  .input-field {
+    @apply w-full border border-outline-variant rounded-md px-md py-md bg-surface focus:outline-none focus:ring-2 focus:ring-secondary-container text-body-md;
+  }
+
+  .table-header {
+    @apply bg-surface-container text-label-caps text-on-surface-variant;
+  }
+
+  .table-row {
+    @apply border-t border-outline-variant hover:bg-surface transition-colors;
+  }
+}
+
