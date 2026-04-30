@@ -1,6 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-
+import { BrowserRouter, Routes, Route, Router } from "react-router-dom";
 
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
@@ -9,12 +7,24 @@ import Home from "../pages/user/Home";
 import MyTickets from "../pages/user/MyTickets";
 import Payment from "../pages/user/Payment";
 import Profile from "../pages/user/Profile";
+import ProfileEdit from "../pages/user/ProfileEdit";
+import ChangePassword from "../pages/user/ChangePassword";
+import SeatBooking from "../pages/user/SeatBooking";
+
+import PrivateRoute from "../guards/PrivateRoute";
 
 import BranchDashboard from "../pages/branch/Dashboard";
 import Revenue from "../pages/branch/Revenue";
 
 import AdminDashboard from "../pages/admin/Dashboard";
 import Flights from "../pages/admin/Flights";
+
+/**
+ * DEMO ACCOUNTS (use to test protected routes):
+ * - user@demo.com / 123456
+ * - branch@demo.com / 123456
+ * - admin@demo.com / 123456
+ */
 
 export default function AppRoutes() {
   return (
@@ -25,15 +35,100 @@ export default function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route path="/my-tickets" element={<MyTickets />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/profile" element={<Profile />} />
+        {/* Protected User Routes - Requires Login */}
+        <Route
+          path="/bookings"
+          element={
+            <PrivateRoute>
+              <SeatBooking />
+            </PrivateRoute>
+          }
+        />
+        {/* <Router path="/bookings" element={<SeatBooking />} /> */}
 
-        <Route path="/branch" element={<BranchDashboard />} />
-        <Route path="/branch/revenue" element={<Revenue />} />
+        <Route
+          path="/payment"
+          element={
+            <PrivateRoute>
+              <Payment />
+            </PrivateRoute>
+          }
+        />
 
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/flights" element={<Flights />} />
+        {/* <Router path="/payment" element={<Payment />} /> */}
+        <Route
+          path="/my-tickets"
+          element={
+            <PrivateRoute>
+              <MyTickets />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/profile/edit"
+          element={
+            <PrivateRoute>
+              <ProfileEdit />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/profile/change-password"
+          element={
+            <PrivateRoute>
+              <ChangePassword />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Branch Routes */}
+        <Route
+          path="/branch"
+          element={
+            <PrivateRoute>
+              <BranchDashboard />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/branch/revenue"
+          element={
+            <PrivateRoute>
+              <Revenue />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute>
+              <AdminDashboard />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/admin/flights"
+          element={
+            <PrivateRoute>
+              <Flights />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

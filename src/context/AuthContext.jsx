@@ -1,31 +1,182 @@
 import { createContext, useContext, useState } from "react";
+import {
+  changeCurrentPassword as changeCurrentPasswordLocal,
+  getCurrentUser as getCurrentUserLocal,
+  loginLocalUser,
+  logoutLocalUser,
+  registerLocalUser,
+  updateCurrentUser as updateCurrentUserLocal,
+} from "../services/authLocalStore";
+import {
+  getCurrentUserApi,
+  loginApi,
+  registerApi,
+  updateCurrentUserApi,
+} from "../services/authService";
 
 const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+// Toggle này để chuyển nhanh giữa demo local và backend thật.
+// true  = dùng backend API (/api/auth/login, /api/auth/register, /api/users/me)
+// false = dùng localStorage demo để chạy offline/demo nhanh
+const USE_BACKEND_AUTH = false;
 
-  const login = (email, password) => {
-    const fakeUser = {
-      email,
-      role: "user"
+const SESSION_KEY = "vna.auth.session";
+
+const readStoredSessionUser = () => {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw)?.user ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredSession = ({ token, user }) => {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ token, user }));
+  localStorage.setItem("token", token);
+  localStorage.setItem("user", JSON.stringify(user));
+};
+
+const clearStoredSession = () => {
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+};
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(() =>
+    USE_BACKEND_AUTH ? readStoredSessionUser() : getCurrentUserLocal(),
+  );
+
+  const persistUser = (nextUser) => {
+    setUser(nextUser);
+    const token = localStorage.getItem("token") || "";
+    if (token) {
+      writeStoredSession({ token, user: nextUser });
+    } else {
+      localStorage.setItem("user", JSON.stringify(nextUser));
+    }
+    return nextUser;
+  };
+
+  const login = async (email, password) => {
+    // DEMO MODE: đổi sang `loginLocalUser({ email, password })` khi muốn chạy local.
+    const result = USE_BACKEND_AUTH
+      ? await loginApi({ email, password })
+      : loginLocalUser({ email, password });
+
+    if (!result.success) {
+      return result;
+    }
+
+    if (USE_BACKEND_AUTH) {
+      writeStoredSession(result.data);
+      persistUser(result.data.user);
+    } else {
+      localStorage.setItem("token", result.data.token);
+      localStorage.setItem("user", JSON.stringify(result.data.user));
+      persistUser(result.data.user);
+    }
+
+    return {
+      success: true,
+      user: result.data.user,
+      message: result.message,
+    };
+  };
+
+  const register = async (data) => {
+    // DEMO MODE: đổi sang `registerLocalUser(data)` khi muốn chạy local.
+    const result = USE_BACKEND_AUTH
+      ? await registerApi(data)
+      : registerLocalUser(data);
+
+    return result;
+  };
+
+  const updateUser = async (nextData) => {
+    const token = localStorage.getItem("token") || "";
+    // DEMO MODE: đổi sang `updateCurrentUserLocal(nextData)` khi muốn chạy local.
+    const result = USE_BACKEND_AUTH
+      ? await updateCurrentUserApi(nextData, token)
+      : updateCurrentUserLocal(nextData);
+
+    if (!result.success) {
+      return result;
+    }
+
+    const nextUser = {
+      ...(user || {}),
+      ...result.data,
     };
 
-    setUser(fakeUser);
-    localStorage.setItem("user", JSON.stringify(fakeUser));
+    persistUser(nextUser);
+
+    return {
+      ...result,
+      user: nextUser,
+    };
+  };
+
+  const changePassword = ({ currentPassword, newPassword }) => {
+    // Hiện backend chưa có endpoint đổi mật khẩu trong spec bạn gửi,
+    // nên chỗ này vẫn giữ demo local để không phá flow đang chạy.
+    return changeCurrentPasswordLocal({ currentPassword, newPassword });
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
+    if (USE_BACKEND_AUTH) {
+      clearStoredSession();
+    } else {
+      logoutLocalUser();
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    }
+  };
+
+  const syncCurrentUser = async () => {
+    // Demo local: đọc từ localStorage. Backend: gọi /api/users/me bằng token.
+    if (!USE_BACKEND_AUTH) {
+      const nextUser = getCurrentUserLocal();
+      setUser(nextUser);
+      return nextUser;
+    }
+
+    const token = localStorage.getItem("token") || "";
+    if (!token) {
+      const nextUser = readStoredSessionUser();
+      setUser(nextUser);
+      return nextUser;
+    }
+
+    const result = await getCurrentUserApi(token);
+    if (!result.success) {
+      return readStoredSessionUser();
+    }
+
+    const nextUser = {
+      ...(readStoredSessionUser() || {}),
+      ...result.data,
+    };
+
+    persistUser(nextUser);
+    return nextUser;
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        isAuthenticated: Boolean(user),
         login,
-        logout
+        register,
+        updateUser,
+        changePassword,
+        syncCurrentUser,
+        logout,
       }}
     >
       {children}

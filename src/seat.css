@@ -1,0 +1,20 @@
+.seat-taken {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.seat-available {
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.seat-business {
+  background-color: #d2e4ff;
+  border: 1px solid #66affe;
+}
+
+.seat-selected {
+  background-color: #ed8936 !important;
+  border-color: #ed8936 !important;
+  color: white;
+}
