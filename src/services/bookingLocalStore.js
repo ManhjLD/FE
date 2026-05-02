@@ -1,8 +1,14 @@
 /**
- * Booking Local Store - Manages booking data flow from SeatBooking to Payment
- * Stores booking session data in localStorage
- * TODO: Replace with API calls when backend is ready
+ * Booking Local Store - Demo mode for testing without backend
+ * When USE_BACKEND_API = true, these functions won't be used
+ *
+ * API Fields (camelCase):
+ * - bookingId, userId, maCn, bookingDate, status
+ * - paymentMethod, paymentStatus, paymentTime, amount
+ * - ticketId, flightId, passengerName, residentId
  */
+
+import { USE_BACKEND_API } from "../config/apiConfig";
 
 const BOOKING_SESSION_KEY = "bookingSession";
 const MY_TICKETS_KEY = "vna.myTickets";
@@ -73,43 +79,65 @@ export const savePaidTicket = ({ booking, payment, userId }) => {
   try {
     const tickets = readJson(MY_TICKETS_KEY, []);
 
+    // Align with API field names (camelCase)
     const ticketRecord = {
-      ticket_id: `${booking.booking_id}-${Date.now()}`,
-      booking_id: booking.booking_id,
-      user_id: userId || booking.user_id,
+      ticketId: `${booking.bookingId || booking.booking_id}-${Date.now()}`,
+      bookingId: booking.bookingId || booking.booking_id,
+      userId: userId || booking.userId || booking.user_id,
       status: "paid",
-      payment_status: "success",
-      payment_method: payment.payment_method,
-      payment_time: payment.payment_time,
-      total_amount: booking.total_amount,
-      from_code: booking.from_code,
-      to_code: booking.to_code,
-      departure_date: booking.departure_date,
-      departure_time: booking.departure_time,
-      departure_datetime:
+      paymentStatus:
+        payment.paymentStatus || payment.payment_status || "success",
+      paymentMethod: payment.paymentMethod || payment.payment_method,
+      paymentTime: payment.paymentTime || payment.payment_time,
+      amount: booking.totalAmount || booking.total_amount,
+      flightId: booking.flightId || booking.flight_id,
+
+      // Flight route
+      fromCode: booking.fromCode || booking.from_code,
+      toCode: booking.toCode || booking.to_code,
+      departureDate: booking.departureDate || booking.departure_date,
+      departureTime: booking.departureTime || booking.departure_time,
+      departureDatetime:
+        booking.departureDatetime ||
         booking.departure_datetime ||
         buildDepartureDateTime(
-          booking.departure_date,
-          booking.departure_time,
+          booking.departureDate || booking.departure_date,
+          booking.departureTime || booking.departure_time,
         ) ||
+        booking.bookingDate ||
         booking.booking_date,
-      flight_duration: booking.flight_duration || booking.flightDuration || 0, // minutes
-      arrival_datetime:
+      flightDuration: booking.flightDuration || booking.flight_duration || 0,
+      arrivalDatetime:
+        booking.arrivalDatetime ||
         booking.arrival_datetime ||
         addMinutesToIsoString(
-          booking.departure_datetime ||
+          booking.departureDatetime ||
+            booking.departure_datetime ||
             buildDepartureDateTime(
-              booking.departure_date,
-              booking.departure_time,
+              booking.departureDate || booking.departure_date,
+              booking.departureTime || booking.departure_time,
             ) ||
+            booking.bookingDate ||
             booking.booking_date,
-          booking.flight_duration || booking.flightDuration || 0,
+          booking.flightDuration || booking.flight_duration || 0,
         ),
-      booking_date: booking.booking_date,
-      selected_seats: booking.selected_seats || [],
-      passenger_name: booking.passengers?.[0]?.passenger_name || "",
-      passenger_email: booking.passengerEmail || "",
-      passenger_phone: booking.passengerPhone || "",
+      bookingDate: booking.bookingDate || booking.booking_date,
+
+      // Passenger info
+      selectedSeats: booking.selectedSeats || booking.selected_seats || [],
+      passengerName:
+        booking.passengers?.[0]?.passengerName ||
+        booking.passengers?.[0]?.passenger_name ||
+        "",
+      residentId:
+        booking.passengers?.[0]?.residentId ||
+        booking.passengers?.[0]?.resident_id ||
+        "",
+      passengerEmail: booking.passengerEmail || "",
+      passengerPhone: booking.passengerPhone || "",
+
+      // Branch
+      maCn: booking.maCn || booking.MaCN || "CN01",
     };
 
     writeJson(MY_TICKETS_KEY, [ticketRecord, ...tickets]);
@@ -125,7 +153,9 @@ export const getPaidTicketsByUser = (userId) => {
     return [];
   }
 
-  return tickets.filter((ticket) => ticket.user_id === userId);
+  return tickets.filter(
+    (ticket) => ticket.userId === userId || ticket.user_id === userId,
+  );
 };
 
 export const getTicketsByUser = (userId) => {
@@ -134,14 +164,20 @@ export const getTicketsByUser = (userId) => {
     return [];
   }
 
-  return tickets.filter((ticket) => ticket.user_id === userId);
+  return tickets.filter(
+    (ticket) => ticket.userId === userId || ticket.user_id === userId,
+  );
 };
 
 export const cancelTicketById = ({ ticketId, userId }) => {
   try {
     const tickets = readJson(MY_TICKETS_KEY, []);
     const nextTickets = tickets.filter(
-      (t) => !(t.ticket_id === ticketId && t.user_id === userId),
+      (t) =>
+        !(
+          (t.ticketId === ticketId || t.ticket_id === ticketId) &&
+          (t.userId === userId || t.user_id === userId)
+        ),
     );
 
     writeJson(MY_TICKETS_KEY, nextTickets);
@@ -152,11 +188,9 @@ export const cancelTicketById = ({ ticketId, userId }) => {
 };
 
 /**
- * Simulates API booking creation based on DB schema:
- * dbo.booking: booking_id, user_id, booking_date, status, MaCN
- * dbo.ticket: ticket_id, booking_id, flight_id, passenger_name, resident_id
- *
- * TODO: Replace with actual POST /api/bookings when backend ready
+ * Simulates API booking creation (demo mode)
+ * API: POST /api/bookings
+ * Fields: bookingId, userId, maCn, bookingDate, status
  */
 export const createBookingData = ({
   userId,
@@ -168,69 +202,65 @@ export const createBookingData = ({
   passengers = [],
   selectedSeats = [],
   totalAmount = 0,
-  branchCode = "CN01", // Default branch
+  maCn = "CN01",
   flightDuration = 0,
 }) => {
-  const bookingId = Math.floor(Math.random() * 1000000); // Simulate DB auto-increment
+  const bookingId = Math.floor(Math.random() * 1000000);
 
   const bookingData = {
-    booking_id: bookingId,
-    user_id: userId,
-    flight_id: flightId,
-    status: "pending", // pending, confirmed, cancelled
-    booking_date: new Date().toISOString(),
-    MaCN: branchCode,
+    bookingId: bookingId,
+    userId: userId,
+    flightId: flightId,
+    status: "confirmed",
+    bookingDate: new Date().toISOString(),
+    maCn: maCn,
 
-    // Flight info
-    from_code: fromCode,
-    to_code: toCode,
-    departure_date: departureDate,
-    departure_time: departureTime,
-    departure_datetime: buildDepartureDateTime(departureDate, departureTime),
-    flight_duration: flightDuration,
-    arrival_datetime: buildDepartureDateTime(departureDate, departureTime)
+    // Flight info (camelCase)
+    fromCode: fromCode,
+    toCode: toCode,
+    departureDate: departureDate,
+    departureTime: departureTime,
+    departureDatetime: buildDepartureDateTime(departureDate, departureTime),
+    flightDuration: flightDuration,
+    arrivalDatetime: buildDepartureDateTime(departureDate, departureTime)
       ? addMinutesToIsoString(
           buildDepartureDateTime(departureDate, departureTime),
           flightDuration,
         )
       : null,
 
-    // Seats & Passengers
-    selected_seats: selectedSeats,
+    // Seats & Passengers (camelCase)
+    selectedSeats: selectedSeats,
     passengers: passengers.map((p) => ({
-      passenger_name: p.passengerName,
-      resident_id: p.residentId,
+      passengerName: p.passengerName,
+      residentId: p.residentId,
     })),
 
-    // Payment info
-    total_amount: totalAmount,
-    seat_price_per_seat: 500000,
-    base_ticket_price: 2150000,
+    totalAmount: totalAmount,
   };
 
   return bookingData;
 };
 
 /**
- * Simulates API payment creation based on DB schema:
- * dbo.payment: payment_id, booking_id, amount, payment_method, payment_status, payment_time
- *
- * TODO: Replace with actual POST /api/payments when backend ready
+ * Simulates API payment creation based on API spec:
+ * API: POST /api/payments
+ * Fields: paymentId, bookingId, amount, paymentMethod, paymentStatus, paymentTime
  */
 export const createPaymentData = (
   bookingId,
   amount,
-  paymentMethod = "qr_code",
+  paymentMethod = "card",
 ) => {
-  const paymentId = Math.floor(Math.random() * 1000000); // Simulate DB auto-increment
+  const paymentId = Math.floor(Math.random() * 1000000);
 
   const paymentData = {
-    payment_id: paymentId,
-    booking_id: bookingId,
+    paymentId: paymentId,
+    bookingId: bookingId,
     amount: amount,
-    payment_method: paymentMethod, // qr_code, credit_card, bank_transfer
-    payment_status: "pending", // pending, success, failed
-    payment_time: new Date().toISOString(),
+    paymentMethod: paymentMethod, // card, cash
+    paymentStatus: "success", // success, failed
+    paymentTime: new Date().toISOString(),
   };
 
   return paymentData;

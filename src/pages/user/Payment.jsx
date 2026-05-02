@@ -8,6 +8,9 @@ import {
   clearBookingSession,
   savePaidTicket,
 } from "../../services/bookingLocalStore";
+import { createPayment } from "../../services/paymentService";
+import { createBooking } from "../../services/bookingService";
+import { USE_BACKEND_API } from "../../config/apiConfig";
 import { useAuth } from "../../context/AuthContext";
 
 const Payment = () => {
@@ -17,17 +20,17 @@ const Payment = () => {
 
   // ===== STATE =====
   const [booking, setBooking] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("qr_code");
+  const [paymentMethod, setPaymentMethod] = useState("card");
   const [isProcessing, setIsProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // ===== LOAD BOOKING SESSION =====
   useEffect(() => {
     try {
-      const bookingId = searchParams.get("booking_id");
+      const bookingIdParam = searchParams.get("booking_id");
       const bookingData = getBookingSession();
 
-      if (!bookingData || !bookingId) {
+      if (!bookingData || !bookingIdParam) {
         navigate("/bookings");
         return;
       }
@@ -52,43 +55,82 @@ const Payment = () => {
     setIsProcessing(true);
 
     try {
-      // Create payment data (aligned with DB schema)
-      const paymentData = createPaymentData(
-        booking.booking_id,
-        booking.total_amount,
-        paymentMethod,
-      );
+      const bookingId = booking.bookingId || booking.booking_id;
+      const amount = booking.totalAmount || booking.total_amount;
+      const userId = user?.user_id;
 
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await createPayment(paymentData);
+      if (USE_BACKEND_API) {
+        // ============ API MODE ============
+        // 1. Create booking
+        const bookingResponse = await createBooking({
+          maCn: booking.maCn || "CN01",
+          flightId: booking.flightId || booking.flight_id,
+          passengerName:
+            booking.passengers?.[0]?.passengerName ||
+            booking.passengers?.[0]?.passenger_name,
+          residentId:
+            booking.passengers?.[0]?.residentId ||
+            booking.passengers?.[0]?.resident_id,
+          amount: amount,
+          paymentMethod: paymentMethod,
+        });
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+        if (!bookingResponse.success || !bookingResponse.data?.bookingId) {
+          throw new Error(bookingResponse.message || "Tạo đơn đặt thất bại");
+        }
 
-      // Save ticket so MyTickets can render dynamic data
-      const ticketResult = savePaidTicket({
-        booking,
-        payment: {
-          ...paymentData,
-          payment_status: "success",
-        },
-        userId: user?.user_id,
-      });
+        const createdBookingId = bookingResponse.data.bookingId;
 
-      if (!ticketResult.success) {
-        throw new Error(ticketResult.error || "Không thể lưu vé");
+        // 2. Create payment
+        const paymentResponse = await createPayment({
+          maCn: booking.maCn || "CN01",
+          bookingId: createdBookingId,
+          amount: amount,
+          paymentMethod: paymentMethod,
+          paymentStatus: "success",
+        });
+
+        if (!paymentResponse.success || !paymentResponse.data?.paymentId) {
+          throw new Error(paymentResponse.message || "Tạo thanh toán thất bại");
+        }
+
+        clearBookingSession();
+        alert(
+          `Thanh toán thành công!\nMã đơn đặt: ${createdBookingId}\n\nVui lòng kiểm tra email để xem thông tin vé`,
+        );
+        navigate("/my-tickets");
+        // ==================================
+      } else {
+        // ============ DEMO MODE (Local) ============
+        console.log("[DEMO MODE] Processing payment locally...");
+
+        // Simulate API delay
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // Create payment data
+        const paymentData = createPaymentData(bookingId, amount, paymentMethod);
+
+        // Save ticket to localStorage
+        const ticketResult = savePaidTicket({
+          booking,
+          payment: {
+            ...paymentData,
+            paymentStatus: "success",
+          },
+          userId: userId,
+        });
+
+        if (!ticketResult.success) {
+          throw new Error(ticketResult.error || "Không thể lưu vé");
+        }
+
+        clearBookingSession();
+        alert(
+          `Thanh toán thành công!\nMã đơn đặt: ${bookingId}\n\nVui lòng kiểm tra email để xem thông tin vé`,
+        );
+        navigate("/my-tickets");
+        // ==================================
       }
-
-      // Clear booking session after successful payment
-      clearBookingSession();
-
-      // Show success message
-      alert(
-        `Thanh toán thành công! Mã đơn đặt: ${booking.booking_id}\n\nVui lòng kiểm tra email ${booking.passengerEmail} để xem thông tin vé`,
-      );
-
-      // Redirect to my tickets
-      navigate("/my-tickets");
     } catch (error) {
       console.error("Payment error:", error);
       alert("Lỗi khi xử lý thanh toán. Vui lòng thử lại!");
@@ -121,20 +163,24 @@ const Payment = () => {
     );
   }
 
-  const baseTax = 450000;
-  const seatFee =
-    booking.selected_seats?.length * (booking.seat_price_per_seat || 500000) ||
-    0;
-  const subtotal = booking.base_ticket_price || 2150000;
-  const total = booking.total_amount || subtotal + seatFee;
+  // Support both camelCase (API) and snake_case (local) fields
+  const total = booking.totalAmount || booking.total_amount || 0;
   const displayPassengerName =
-    booking.passengers?.[0]?.passenger_name || user?.name || "Chưa cập nhật";
+    booking.passengers?.[0]?.passengerName ||
+    booking.passengers?.[0]?.passenger_name ||
+    user?.name ||
+    "Chưa cập nhật";
   const displayPassengerEmail =
     booking.passengerEmail || user?.email || "Chưa cập nhật";
   const displayPassengerPhone =
     booking.passengerPhone || user?.phone || "Chưa cập nhật";
   const displayResidentId =
-    booking.passengers?.[0]?.resident_id || user?.residentId || "Chưa cập nhật";
+    booking.passengers?.[0]?.residentId ||
+    booking.passengers?.[0]?.resident_id ||
+    user?.residentId ||
+    "Chưa cập nhật";
+  const fromCode = booking.fromCode || booking.from_code;
+  const toCode = booking.toCode || booking.to_code;
 
   return (
     <>

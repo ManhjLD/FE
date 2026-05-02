@@ -7,6 +7,7 @@ import {
   cancelTicketById,
   getTicketsByUser,
 } from "../../services/bookingLocalStore";
+import { USE_BACKEND_API } from "../../config/apiConfig";
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -30,30 +31,36 @@ const Profile = () => {
 
   const now = new Date();
   const getDepartureDateTime = (ticket) => {
-    if (ticket.departure_datetime) {
-      return new Date(ticket.departure_datetime);
+    // Support both camelCase (API) and snake_case (local)
+    if (ticket.departureDatetime || ticket.departure_datetime) {
+      return new Date(ticket.departureDatetime || ticket.departure_datetime);
     }
 
-    if (ticket.departure_date && ticket.departure_time) {
-      return new Date(`${ticket.departure_date}T${ticket.departure_time}:00`);
+    const depDate = ticket.departureDate || ticket.departure_date;
+    const depTime = ticket.departureTime || ticket.departure_time;
+
+    if (depDate && depTime) {
+      return new Date(`${depDate}T${depTime}:00`);
     }
 
-    if (ticket.booking_date && ticket.departure_time) {
-      const datePart = ticket.booking_date.slice(0, 10);
-      return new Date(`${datePart}T${ticket.departure_time}:00`);
+    const bookDate = ticket.bookingDate || ticket.booking_date;
+    if (bookDate && depTime) {
+      const datePart = bookDate.slice(0, 10);
+      return new Date(`${datePart}T${depTime}:00`);
     }
 
-    return new Date(ticket.booking_date);
+    return new Date(bookDate || ticket.booking_date);
   };
 
   const getArrivalDateTime = (ticket) => {
-    if (ticket.arrival_datetime) {
-      return new Date(ticket.arrival_datetime);
+    // Support both camelCase (API) and snake_case (local)
+    if (ticket.arrivalDatetime || ticket.arrival_datetime) {
+      return new Date(ticket.arrivalDatetime || ticket.arrival_datetime);
     }
 
     const dep = getDepartureDateTime(ticket);
     const duration = Number(
-      ticket.flight_duration || ticket.flightDuration || 0,
+      ticket.flightDuration || ticket.flight_duration || 0,
     );
     if (!dep || !duration) return dep;
 
@@ -218,50 +225,62 @@ const Profile = () => {
                     Không có vé sắp tới.
                   </div>
                 ) : (
-                  upcomingList.map((ticket) => (
-                    <div
-                      key={ticket.ticket_id}
-                      className="bg-white rounded-xl shadow p-5 flex flex-col md:flex-row justify-between gap-4"
-                    >
-                      <div className="flex gap-4">
-                        <span className="material-symbols-outlined text-blue-600 text-3xl">
-                          flight_takeoff
-                        </span>
+                  upcomingList.map((ticket) => {
+                    // Support both camelCase (API) and snake_case (local)
+                    const ticketId = ticket.ticketId || ticket.ticket_id;
+                    const bookingId = ticket.bookingId || ticket.booking_id;
+                    const fromCode = ticket.fromCode || ticket.from_code;
+                    const toCode = ticket.toCode || ticket.to_code;
+                    const depTime =
+                      ticket.departureTime || ticket.departure_time || "08:00";
+                    const selectedSeats =
+                      ticket.selectedSeats || ticket.selected_seats || [];
 
-                        <div>
-                          <p className="font-semibold text-gray-800">
-                            {cityByCode[ticket.from_code] || ticket.from_code} →{" "}
-                            {cityByCode[ticket.to_code] || ticket.to_code}
-                          </p>
+                    return (
+                      <div
+                        key={ticketId}
+                        className="bg-white rounded-xl shadow p-5 flex flex-col md:flex-row justify-between gap-4"
+                      >
+                        <div className="flex gap-4">
+                          <span className="material-symbols-outlined text-blue-600 text-3xl">
+                            flight_takeoff
+                          </span>
 
-                          <p className="text-sm text-gray-500">
-                            {getDepartureDateTime(ticket).toLocaleDateString(
-                              "vi-VN",
-                            )}{" "}
-                            • {ticket.departure_time || "08:00"} • Ghế{" "}
-                            {ticket.selected_seats?.join(", ") || "N/A"}
-                          </p>
+                          <div>
+                            <p className="font-semibold text-gray-800">
+                              {cityByCode[fromCode] || fromCode} →{" "}
+                              {cityByCode[toCode] || toCode}
+                            </p>
+
+                            <p className="text-sm text-gray-500">
+                              {getDepartureDateTime(ticket).toLocaleDateString(
+                                "vi-VN",
+                              )}{" "}
+                              • {depTime} • Ghế{" "}
+                              {selectedSeats?.join(", ") || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-2">
+                          <span className="text-xs bg-green-100 text-green-600 px-3 py-1 rounded-full">
+                            Đã thanh toán
+                          </span>
+
+                          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+                            Mã đặt chỗ: {bookingId}
+                          </button>
+
+                          <button
+                            onClick={() => setCancelingTicketId(ticketId)}
+                            className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm"
+                          >
+                            Hủy vé
+                          </button>
                         </div>
                       </div>
-
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="text-xs bg-green-100 text-green-600 px-3 py-1 rounded-full">
-                          Đã thanh toán
-                        </span>
-
-                        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
-                          Mã đặt chỗ: {ticket.booking_id}
-                        </button>
-
-                        <button
-                          onClick={() => setCancelingTicketId(ticket.ticket_id)}
-                          className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm"
-                        >
-                          Hủy vé
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 
@@ -319,43 +338,55 @@ const Profile = () => {
                     Không có vé đã đặt.
                   </div>
                 ) : (
-                  completedList.map((ticket) => (
-                    <div
-                      key={ticket.ticket_id}
-                      className="bg-white rounded-xl shadow p-5 flex flex-col md:flex-row justify-between gap-4"
-                    >
-                      <div className="flex gap-4">
-                        <span className="material-symbols-outlined text-blue-600 text-3xl">
-                          flight_takeoff
-                        </span>
+                  completedList.map((ticket) => {
+                    // Support both camelCase (API) and snake_case (local)
+                    const ticketId = ticket.ticketId || ticket.ticket_id;
+                    const bookingId = ticket.bookingId || ticket.booking_id;
+                    const fromCode = ticket.fromCode || ticket.from_code;
+                    const toCode = ticket.toCode || ticket.to_code;
+                    const depTime =
+                      ticket.departureTime || ticket.departure_time || "08:00";
+                    const selectedSeats =
+                      ticket.selectedSeats || ticket.selected_seats || [];
 
-                        <div>
-                          <p className="font-semibold text-gray-800">
-                            {cityByCode[ticket.from_code] || ticket.from_code} →{" "}
-                            {cityByCode[ticket.to_code] || ticket.to_code}
-                          </p>
+                    return (
+                      <div
+                        key={ticketId}
+                        className="bg-white rounded-xl shadow p-5 flex flex-col md:flex-row justify-between gap-4"
+                      >
+                        <div className="flex gap-4">
+                          <span className="material-symbols-outlined text-blue-600 text-3xl">
+                            flight_takeoff
+                          </span>
 
-                          <p className="text-sm text-gray-500">
-                            {getDepartureDateTime(ticket).toLocaleDateString(
-                              "vi-VN",
-                            )}{" "}
-                            • {ticket.departure_time || "08:00"} • Ghế{" "}
-                            {ticket.selected_seats?.join(", ") || "N/A"}
-                          </p>
+                          <div>
+                            <p className="font-semibold text-gray-800">
+                              {cityByCode[fromCode] || fromCode} →{" "}
+                              {cityByCode[toCode] || toCode}
+                            </p>
+
+                            <p className="text-sm text-gray-500">
+                              {getDepartureDateTime(ticket).toLocaleDateString(
+                                "vi-VN",
+                              )}{" "}
+                              • {depTime} • Ghế{" "}
+                              {selectedSeats?.join(", ") || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-2">
+                          <span className="text-xs bg-slate-200 text-slate-700 px-3 py-1 rounded-full">
+                            Đã đặt
+                          </span>
+
+                          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+                            Mã đặt chỗ: {bookingId}
+                          </button>
                         </div>
                       </div>
-
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="text-xs bg-slate-200 text-slate-700 px-3 py-1 rounded-full">
-                          Đã đặt
-                        </span>
-
-                        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
-                          Mã đặt chỗ: {ticket.booking_id}
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </>

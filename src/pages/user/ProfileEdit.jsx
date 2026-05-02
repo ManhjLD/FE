@@ -11,6 +11,8 @@ const ProfileEdit = () => {
     name: "",
     email: "",
     phone: "",
+    password: "",
+    confirmPassword: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,6 +22,8 @@ const ProfileEdit = () => {
       name: user?.name || "",
       email: user?.email || "",
       phone: user?.phone || "",
+      password: "",
+      confirmPassword: "",
     });
   }, [user]);
 
@@ -33,14 +37,30 @@ const ProfileEdit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setLoading(true);
     setError("");
 
-    const result = await updateUser({
+    // If user wants to change password, validate confirmation
+    if (
+      (form.password || form.confirmPassword) &&
+      form.password !== form.confirmPassword
+    ) {
+      setError("Mật khẩu mới và xác nhận mật khẩu không khớp.");
+      return;
+    }
+
+    setLoading(true);
+
+    const payload = {
       name: form.name,
       email: form.email,
       phone: form.phone,
-    });
+    };
+
+    if (form.password) {
+      payload.password = form.password;
+    }
+
+    const result = await updateUser(payload);
 
     if (result.success) {
       navigate("/");
@@ -150,6 +170,36 @@ const ProfileEdit = () => {
                         name="phone"
                         value={form.phone}
                         onChange={handleChange}
+                        className="w-full mt-1 px-4 py-3 border rounded-lg"
+                      />
+                    </div>
+
+                    {/* New Password */}
+                    <div>
+                      <label className="text-xs text-gray-500">
+                        Mật khẩu mới
+                      </label>
+                      <input
+                        type="password"
+                        name="password"
+                        value={form.password}
+                        onChange={handleChange}
+                        placeholder="Để trống nếu không đổi"
+                        className="w-full mt-1 px-4 py-3 border rounded-lg"
+                      />
+                    </div>
+
+                    {/* Confirm Password */}
+                    <div>
+                      <label className="text-xs text-gray-500">
+                        Xác nhận mật khẩu
+                      </label>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={form.confirmPassword}
+                        onChange={handleChange}
+                        placeholder="Xác nhận mật khẩu mới"
                         className="w-full mt-1 px-4 py-3 border rounded-lg"
                       />
                     </div>
