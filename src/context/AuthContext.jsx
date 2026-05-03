@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react";
 import { flushSync } from "react-dom";
+import { USE_BACKEND_API } from "../config/apiConfig";
 import {
   changeCurrentPassword as changeCurrentPasswordLocal,
   getCurrentUser as getCurrentUserLocal,
@@ -17,12 +18,9 @@ import {
 
 const AuthContext = createContext();
 
-// Toggle này để chuyển nhanh giữa demo local và backend thật.
-// true  = dùng backend API (/api/auth/login, /api/auth/register, /api/users/me)
-// false = dùng localStorage demo để chạy offline/demo nhanh
-const USE_BACKEND_AUTH = false;
-
 const SESSION_KEY = "vna.auth.session";
+
+// const SESSION_KEY = "vna.auth.session";
 
 const readStoredSessionUser = () => {
   try {
@@ -48,7 +46,7 @@ const clearStoredSession = () => {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() =>
-    USE_BACKEND_AUTH ? readStoredSessionUser() : getCurrentUserLocal(),
+    USE_BACKEND_API ? readStoredSessionUser() : getCurrentUserLocal(),
   );
 
   const persistUser = (nextUser) => {
@@ -64,7 +62,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     // DEMO MODE: đổi sang `loginLocalUser({ email, password })` khi muốn chạy local.
-    const result = USE_BACKEND_AUTH
+    const result = USE_BACKEND_API
       ? await loginApi({ email, password })
       : loginLocalUser({ email, password });
 
@@ -74,7 +72,6 @@ export function AuthProvider({ children }) {
       return result;
     }
 
-    // Use flushSync to ensure state update completes synchronously before navigation
     flushSync(() => {
       if (USE_BACKEND_AUTH) {
         writeStoredSession(result.data);
@@ -89,6 +86,14 @@ export function AuthProvider({ children }) {
     console.log("✅ AuthContext.login - returning user:", result.data.user);
     console.log("✅ User role:", result.data.user?.role);
     console.log("✅ Full user object:", JSON.stringify(result.data.user, null, 2));
+    if (USE_BACKEND_API) {
+      writeStoredSession(result.data);
+      persistUser(result.data.user);
+    } else {
+      localStorage.setItem("token", result.data.token);
+      localStorage.setItem("user", JSON.stringify(result.data.user));
+      persistUser(result.data.user);
+    }
 
     return {
       success: true,
@@ -99,7 +104,7 @@ export function AuthProvider({ children }) {
 
   const register = async (data) => {
     // DEMO MODE: đổi sang `registerLocalUser(data)` khi muốn chạy local.
-    const result = USE_BACKEND_AUTH
+    const result = USE_BACKEND_API
       ? await registerApi(data)
       : registerLocalUser(data);
 
@@ -109,7 +114,7 @@ export function AuthProvider({ children }) {
   const updateUser = async (nextData) => {
     const token = localStorage.getItem("token") || "";
     // DEMO MODE: đổi sang `updateCurrentUserLocal(nextData)` khi muốn chạy local.
-    const result = USE_BACKEND_AUTH
+    const result = USE_BACKEND_API
       ? await updateCurrentUserApi(nextData, token)
       : updateCurrentUserLocal(nextData);
 
@@ -138,7 +143,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setUser(null);
-    if (USE_BACKEND_AUTH) {
+    if (USE_BACKEND_API) {
       clearStoredSession();
     } else {
       logoutLocalUser();
@@ -149,7 +154,7 @@ export function AuthProvider({ children }) {
 
   const syncCurrentUser = async () => {
     // Demo local: đọc từ localStorage. Backend: gọi /api/users/me bằng token.
-    if (!USE_BACKEND_AUTH) {
+    if (!USE_BACKEND_API) {
       const nextUser = getCurrentUserLocal();
       setUser(nextUser);
       return nextUser;

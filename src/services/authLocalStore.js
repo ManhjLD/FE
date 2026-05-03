@@ -647,6 +647,7 @@ export function updateCurrentUser(data) {
     name: data.name ?? currentUser.name,
     email: data.email ?? currentUser.email,
     phone: data.phone ?? currentUser.phone,
+    password: data.password ?? currentUser.password,
   };
 
   const nextUsers = users.map((user) =>

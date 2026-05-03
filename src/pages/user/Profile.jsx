@@ -129,12 +129,12 @@ const Profile = () => {
                   >
                     Chỉnh sửa
                   </Link>
-                  <Link
+                  {/* <Link
                     to="/profile/change-password"
                     className="border border-blue-500 text-blue-500 px-5 py-2 rounded-lg hover:bg-blue-50"
                   >
                     Đổi mật khẩu
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
             </div>

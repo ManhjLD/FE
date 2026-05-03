@@ -7,9 +7,9 @@ export default function Home() {
   const flights = [
     {
       id: 1,
-      fromCode: "HAN",
+      fromCode: "HN",
       fromCity: "Hà Nội",
-      toCode: "SGN",
+      toCode: "TP.HCM",
       toCity: "TP.HCM",
       duration: "2h 15m",
       time: "14:30 - 16:45",
@@ -19,9 +19,9 @@ export default function Home() {
     },
     {
       id: 2,
-      fromCode: "HAN",
+      fromCode: "HN",
       fromCity: "Hà Nội",
-      toCode: "DAD",
+      toCode: "ĐN",
       toCity: "Đà Nẵng",
       duration: "1h 20m",
       time: "08:15 - 09:35",
@@ -31,10 +31,10 @@ export default function Home() {
     },
     {
       id: 3,
-      fromCode: "SGN",
+      fromCode: "TP.HCM",
       fromCity: "TP.HCM",
-      toCode: "PQC",
-      toCity: "Phú Quốc",
+      toCode: "TT",
+      toCity: "Huế",
       duration: "1h 05m",
       time: "11:00 - 12:05",
       price: "2.150.000đ",

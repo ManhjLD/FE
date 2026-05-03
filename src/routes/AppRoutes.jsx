@@ -8,7 +8,6 @@ import MyTickets from "../pages/user/MyTickets";
 import Payment from "../pages/user/Payment";
 import Profile from "../pages/user/Profile";
 import ProfileEdit from "../pages/user/ProfileEdit";
-import ChangePassword from "../pages/user/ChangePassword";
 import SeatBooking from "../pages/user/SeatBooking";
 
 import PrivateRoute from "../guards/PrivateRoute";
