@@ -20,7 +20,7 @@ const DEMO_USERS = [
     email: "branch@demo.com",
     phone: "0901000002",
     password: "123456",
-    role: "br_staff",
+    role: "staff",
     MaCN: "BR-001",
   },
   {
@@ -33,6 +33,391 @@ const DEMO_USERS = [
     MaCN: "HQ-001",
   },
 ];
+
+// Demo data for Branch Management
+export const DEMO_BRANCH_USERS = [
+  {
+    id: "br-user-001",
+    fullName: "Nguyễn Văn A",
+    email: "a@branch.com",
+    phone: "0901111111",
+    role: "staff",
+    status: "active",
+  },
+  {
+    id: "br-user-002",
+    fullName: "Trần Thị B",
+    email: "b@branch.com",
+    phone: "0901111112",
+    role: "staff",
+    status: "active",
+  },
+  {
+    id: "br-user-003",
+    fullName: "Lê Văn C",
+    email: "c@branch.com",
+    phone: "0901111113",
+    role: "staff",
+    status: "active",
+  },
+];
+
+export const DEMO_BRANCH_BOOKINGS = [
+  {
+    id: "BK001",
+    departure: "HAN",
+    arrival: "SGN",
+    customerName: "Nguyễn Văn X",
+    bookingDate: new Date(Date.now() - 86400000).toISOString(),
+    amount: 1200000,
+    status: "confirmed",
+  },
+  {
+    id: "BK002",
+    departure: "SGN",
+    arrival: "PQC",
+    customerName: "Trần Thị Y",
+    bookingDate: new Date().toISOString(),
+    amount: 2100000,
+    status: "pending",
+  },
+  {
+    id: "BK003",
+    departure: "HAN",
+    arrival: "DAD",
+    customerName: "Lê Văn Z",
+    bookingDate: new Date().toISOString(),
+    amount: 850000,
+    status: "confirmed",
+  },
+];
+
+export const DEMO_BRANCH_REVENUE = {
+  daily: {
+    total: 4200000,
+    bookingCount: 3,
+  },
+  monthly: {
+    total: 128500000,
+    bookingCount: 98,
+  },
+  summary: {
+    totalRevenue: 1280500000,
+    averageDailyRevenue: 42683333,
+    totalBookings: 1024,
+    routeCount: 8,
+    newCustomersCount: 142,
+    returnCustomerRate: 0.68,
+    yearlyTotal: 1850000000,
+    yearlyBookings: 1512,
+  },
+};
+
+export const DEMO_BRANCH_DASHBOARD = {
+  totalCustomers: 1245,
+  todayTickets: 152,
+  revenue: "320 triệu",
+  totalFlights: 28,
+  totalBookings: 4892,
+  staffCount: 12,
+};
+
+// Demo data for Admin Management
+export const DEMO_ADMIN_USERS = [
+  {
+    id: "admin-user-001",
+    fullName: "Admin Tổng",
+    email: "admin.general@airline.com",
+    phone: "0905000001",
+    role: "admin", // Updated to user role
+    status: "active",
+  },
+  {
+    id: "admin-user-003",
+    fullName: "Nhân viên 1",
+    email: "staff1@airline.com",
+    phone: "0905000003",
+    role: "staff",
+    status: "active",
+  },
+  {
+    id: "admin-user-004",
+    fullName: "ngdung",
+    email: "user@airline.com",
+    phone: "0905000004",
+    role: "user",
+    status: "inactive",
+  },
+];
+
+export const DEMO_ADMIN_FLIGHTS = [
+  {
+    id: "flight-001",
+    code: "VN001",
+    departure: "HAN",
+    arrival: "SGN",
+    departureTime: "08:00",
+    duration: 120,
+    price: 1200000,
+    totalSeats: 180,
+  },
+  {
+    id: "flight-002",
+    code: "VN002",
+    departure: "SGN",
+    arrival: "DAD",
+    departureTime: "14:30",
+    duration: 60,
+    price: 850000,
+    totalSeats: 150,
+  },
+  {
+    id: "flight-003",
+    code: "VN003",
+    departure: "HAN",
+    arrival: "PQC",
+    departureTime: "10:00",
+    duration: 90,
+    price: 950000,
+    totalSeats: 120,
+  },
+];
+
+export const DEMO_ADMIN_BRANCHES = [
+  {
+    id: "branch-001",
+    code: "BR-001",
+    name: "Chi nhánh Hà Nội",
+    address: "123 Đường Lý Thường Kiệt",
+    city: "Hà Nội",
+    phone: "0243-9999-9999",
+    email: "hanoi@airline.com",
+  },
+  {
+    id: "branch-002",
+    code: "BR-002",
+    name: "Chi nhánh TP.HCM",
+    address: "456 Nguyễn Hữu Cảnh",
+    city: "TP.HCM",
+    phone: "0283-8888-8888",
+    email: "hcm@airline.com",
+  },
+  {
+    id: "branch-003",
+    code: "BR-003",
+    name: "Chi nhánh Đà Nẵng",
+    address: "789 Bạch Đằng",
+    city: "Đà Nẵng",
+    phone: "0236-7777-7777",
+    email: "danang@airline.com",
+  },
+];
+
+export const DEMO_ADMIN_DASHBOARD = {
+  totalUsers: 25120,
+  totalBranches: 18,
+  totalAirports: 42,
+  monthlyRevenue: "12 tỷ",
+  totalFlights: 542,
+  totalBookings: 48920,
+};
+
+export const DEMO_ADMIN_STATISTICS = {
+  usersCount: 25120,
+  branchesCount: 18,
+  airportsCount: 42,
+  monthlyRevenue: 12000000000,
+  flightsCount: 542,
+  bookingsCount: 48920,
+};
+
+export const DEMO_ADMIN_REPORTS = {
+  revenue: [
+    { branchName: "Hà Nội", totalRevenue: 4200000000, bookingCount: 3500 },
+    { branchName: "TP.HCM", totalRevenue: 5100000000, bookingCount: 4200 },
+    { branchName: "Đà Nẵng", totalRevenue: 2800000000, bookingCount: 2220 },
+  ],
+  users: {
+    totalUsers: 25120,
+    activeUsers: 23450,
+    newUsers: 1250,
+    adminCount: 45,
+  },
+  flights: {
+    totalFlights: 542,
+    todayFlights: 28,
+    routeCount: 32,
+    averageSeats: 165,
+  },
+  bookings: {
+    totalBookings: 48920,
+    confirmedBookings: 42350,
+    pendingBookings: 4200,
+    cancelledBookings: 2370,
+  },
+};
+
+// Demo data for Airports
+export const DEMO_AIRPORTS = [
+  {
+    id: "airport-001",
+    code: "HAN",
+    name: "Sân bay Quốc tế Nội Bài",
+    city: "Hà Nội",
+    country: "Việt Nam",
+    status: "active",
+  },
+  {
+    id: "airport-002",
+    code: "SGN",
+    name: "Sân bay Quốc tế Tân Sơn Nhất",
+    city: "TP.HCM",
+    country: "Việt Nam",
+    status: "active",
+  },
+  {
+    id: "airport-003",
+    code: "DAD",
+    name: "Sân bay Quốc tế Đà Nẵng",
+    city: "Đà Nẵng",
+    country: "Việt Nam",
+    status: "active",
+  },
+  {
+    id: "airport-004",
+    code: "PQC",
+    name: "Sân bay Quốc tế Phú Quốc",
+    city: "Kiên Giang",
+    country: "Việt Nam",
+    status: "active",
+  },
+];
+
+// Demo data for Aircrafts
+export const DEMO_AIRCRAFTS = [
+  {
+    id: "aircraft-001",
+    code: "B777-1",
+    model: "Boeing 777",
+    capacity: 300,
+    manufacturer: "Boeing",
+    status: "active",
+    purchaseDate: "2015-03-15",
+  },
+  {
+    id: "aircraft-002",
+    code: "A320-1",
+    model: "Airbus A320",
+    capacity: 180,
+    manufacturer: "Airbus",
+    status: "active",
+    purchaseDate: "2018-07-20",
+  },
+  {
+    id: "aircraft-003",
+    code: "A321-1",
+    model: "Airbus A321",
+    capacity: 220,
+    manufacturer: "Airbus",
+    status: "active",
+    purchaseDate: "2019-11-10",
+  },
+];
+
+// Demo data for Tickets
+export const DEMO_TICKETS = [
+  {
+    id: "ticket-001",
+    bookingId: "BK001",
+    flightCode: "VN001",
+    seatNumber: "1A",
+    passengerName: "Nguyễn Văn X",
+    price: 1200000,
+    status: "issued",
+    issueDate: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: "ticket-002",
+    bookingId: "BK002",
+    flightCode: "VN002",
+    seatNumber: "2B",
+    passengerName: "Trần Thị Y",
+    price: 2100000,
+    status: "issued",
+    issueDate: new Date().toISOString(),
+  },
+  {
+    id: "ticket-003",
+    bookingId: "BK003",
+    flightCode: "VN001",
+    seatNumber: "3C",
+    passengerName: "Lê Văn Z",
+    price: 850000,
+    status: "issued",
+    issueDate: new Date().toISOString(),
+  },
+];
+
+// Demo data for Payments
+export const DEMO_PAYMENTS = [
+  {
+    id: "payment-001",
+    bookingId: "BK001",
+    amount: 1200000,
+    method: "credit_card",
+    status: "completed",
+    transactionId: "TXN001",
+    paymentDate: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: "payment-002",
+    bookingId: "BK002",
+    amount: 2100000,
+    method: "bank_transfer",
+    status: "pending",
+    transactionId: "TXN002",
+    paymentDate: new Date().toISOString(),
+  },
+  {
+    id: "payment-003",
+    bookingId: "BK003",
+    amount: 850000,
+    method: "credit_card",
+    status: "completed",
+    transactionId: "TXN003",
+    paymentDate: new Date().toISOString(),
+  },
+];
+
+// Demo data for Reports
+export const DEMO_STAFF_REPORTS = {
+  financial: {
+    totalRevenue: 4200000000,
+    totalPayments: 3980000000,
+    completedTransactions: 3500,
+    pendingTransactions: 150,
+    failedTransactions: 28,
+  },
+  flights: {
+    totalFlights: 542,
+    onTimeFlights: 512,
+    delayedFlights: 25,
+    cancelledFlights: 5,
+    totalPassengers: 98520,
+  },
+  sales: {
+    totalBookings: 48920,
+    soldTickets: 48500,
+    revenue: 4200000000,
+    averageTicketPrice: 86450,
+  },
+  customers: {
+    totalCustomers: 25120,
+    newCustomers: 1250,
+    activeCustomers: 23450,
+    loyalCustomers: 4500,
+  },
+};
 
 function readJson(key, fallback) {
   const raw = localStorage.getItem(key);
@@ -127,6 +512,7 @@ function replaceStoredUser(updatedUser) {
 }
 
 export function getCurrentUser() {
+    // Ensure only user, staff, and admin roles are returned
   return readSession()?.user ?? null;
 }
 

@@ -13,11 +13,24 @@ import SeatBooking from "../pages/user/SeatBooking";
 
 import PrivateRoute from "../guards/PrivateRoute";
 
+import BranchLayout from "../layouts/BranchLayout";
 import BranchDashboard from "../pages/branch/Dashboard";
-import Revenue from "../pages/branch/Revenue";
+import BranchBookings from "../pages/branch/Bookings";
+import BranchUsers from "../pages/branch/Users";
+import BranchRevenue from "../pages/branch/Revenue";
+import BranchTickets from "../pages/branch/Tickets";
+import BranchPayments from "../pages/branch/Payments";
 
+import HQLayout from "../layouts/HQLayout";
 import AdminDashboard from "../pages/admin/Dashboard";
 import Flights from "../pages/admin/Flights";
+import Branches from "../pages/admin/Branches";
+import Users from "../pages/admin/Users";
+import Reports from "../pages/admin/Reports";
+import Airports from "../pages/admin/Airports";
+import Aircrafts from "../pages/admin/Aircrafts";
+import Tickets from "../pages/admin/Tickets";
+import Payments from "../pages/admin/Payments";
 
 /**
  * DEMO ACCOUNTS (use to test protected routes):
@@ -39,7 +52,7 @@ export default function AppRoutes() {
         <Route
           path="/bookings"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRoles={["user"]}>
               <SeatBooking />
             </PrivateRoute>
           }
@@ -49,7 +62,7 @@ export default function AppRoutes() {
         <Route
           path="/payment"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRoles={["user"]}>
               <Payment />
             </PrivateRoute>
           }
@@ -59,7 +72,7 @@ export default function AppRoutes() {
         <Route
           path="/my-tickets"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRoles={["user"]}>
               <MyTickets />
             </PrivateRoute>
           }
@@ -68,7 +81,7 @@ export default function AppRoutes() {
         <Route
           path="/profile"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRoles={["user"]}>
               <Profile />
             </PrivateRoute>
           }
@@ -77,7 +90,7 @@ export default function AppRoutes() {
         <Route
           path="/profile/edit"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRoles={["user"]}>
               <ProfileEdit />
             </PrivateRoute>
           }
@@ -86,7 +99,7 @@ export default function AppRoutes() {
         <Route
           path="/profile/change-password"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRoles={["user"]}>
               <ChangePassword />
             </PrivateRoute>
           }
@@ -96,39 +109,38 @@ export default function AppRoutes() {
         <Route
           path="/branch"
           element={
-            <PrivateRoute>
-              <BranchDashboard />
+            <PrivateRoute requiredRoles={["staff"]}>
+              <BranchLayout />
             </PrivateRoute>
           }
-        />
-
-        <Route
-          path="/branch/revenue"
-          element={
-            <PrivateRoute>
-              <Revenue />
-            </PrivateRoute>
-          }
-        />
+        >
+          <Route index element={<BranchDashboard />} />
+          <Route path="bookings" element={<BranchBookings />} />
+          <Route path="users" element={<BranchUsers />} />
+          <Route path="revenue" element={<BranchRevenue />} />
+          <Route path="tickets" element={<BranchTickets />} />
+          <Route path="payments" element={<BranchPayments />} />
+        </Route>
 
         {/* Admin Routes */}
         <Route
           path="/admin"
           element={
-            <PrivateRoute>
-              <AdminDashboard />
+            <PrivateRoute requiredRoles={["admin"]}>
+              <HQLayout />
             </PrivateRoute>
           }
-        />
-
-        <Route
-          path="/admin/flights"
-          element={
-            <PrivateRoute>
-              <Flights />
-            </PrivateRoute>
-          }
-        />
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="flights" element={<Flights />} />
+          <Route path="branches" element={<Branches />} />
+          <Route path="users" element={<Users />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="airports" element={<Airports />} />
+          <Route path="aircrafts" element={<Aircrafts />} />
+          <Route path="tickets" element={<Tickets />} />
+          <Route path="payments" element={<Payments />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

@@ -19,6 +19,8 @@ export default function Login() {
 
     const result = await login(email, password);
 
+    console.log("📝 Login result:", result);
+
     if (!result.success) {
       setError(result.message);
       setLoading(false);
@@ -27,18 +29,24 @@ export default function Login() {
 
     setError("");
 
+    console.log("👤 User object:", result.user);
+    console.log("🎯 User role:", result.user.role);
+
     if (result.user.role === "admin") {
+      console.log("➡️ Navigating to /admin");
       navigate("/admin");
       setLoading(false);
       return;
     }
 
-    if (result.user.role === "br_staff") {
+    if (result.user.role === "staff") {
+      console.log("➡️ Navigating to /branch");
       navigate("/branch");
       setLoading(false);
       return;
     }
 
+    console.log("➡️ Navigating to /");
     navigate("/");
     setLoading(false);
   };

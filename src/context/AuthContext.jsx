@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { flushSync } from "react-dom";
 import {
   changeCurrentPassword as changeCurrentPasswordLocal,
   getCurrentUser as getCurrentUserLocal,
@@ -67,18 +68,27 @@ export function AuthProvider({ children }) {
       ? await loginApi({ email, password })
       : loginLocalUser({ email, password });
 
+    console.log("🔑 AuthContext.login - auth result:", result);
+
     if (!result.success) {
       return result;
     }
 
-    if (USE_BACKEND_AUTH) {
-      writeStoredSession(result.data);
-      persistUser(result.data.user);
-    } else {
-      localStorage.setItem("token", result.data.token);
-      localStorage.setItem("user", JSON.stringify(result.data.user));
-      persistUser(result.data.user);
-    }
+    // Use flushSync to ensure state update completes synchronously before navigation
+    flushSync(() => {
+      if (USE_BACKEND_AUTH) {
+        writeStoredSession(result.data);
+      } else {
+        localStorage.setItem("token", result.data.token);
+        localStorage.setItem("user", JSON.stringify(result.data.user));
+      }
+      setUser(result.data.user);
+    });
+
+    console.log("✅ AuthContext.login - state updated");
+    console.log("✅ AuthContext.login - returning user:", result.data.user);
+    console.log("✅ User role:", result.data.user?.role);
+    console.log("✅ Full user object:", JSON.stringify(result.data.user, null, 2));
 
     return {
       success: true,

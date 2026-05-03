@@ -54,7 +54,7 @@ const ProfileEdit = () => {
   const roleLabel =
     user?.role === "admin"
       ? "Quản trị viên"
-      : user?.role === "br_staff"
+      : user?.role === "staff"
         ? "Nhân viên trạm"
         : "Khách hàng";
 
