@@ -95,14 +95,14 @@ export default function AppRoutes() {
           }
         />
 
-        <Route
+        {/* <Route
           path="/profile/change-password"
           element={
             <PrivateRoute requiredRoles={["user"]}>
               <ChangePassword />
             </PrivateRoute>
           }
-        />
+        /> */}
 
         {/* Branch Routes */}
         <Route

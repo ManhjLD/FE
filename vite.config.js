@@ -4,14 +4,12 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
-<<<<<<< HEAD
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
-});
-=======
+// });
   server: {
     port: 3000,
     proxy: {
@@ -22,4 +20,3 @@ export default defineConfig({
     },
   },
 });
->>>>>>> main
