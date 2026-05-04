@@ -9,7 +9,7 @@ const {logout } = useAuth();
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       <aside className="w-64 bg-primary-container text-on-primary px-lg py-xl sticky top-0 h-screen overflow-y-auto shadow-soft-navy">
-        <h2 className="text-h2 font-bold mb-xl">Staff</h2>
+        <h2 className="text-h2 font-bold mb-xl">Branch</h2>
 
         <nav className="space-y-base">
           <Link

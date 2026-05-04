@@ -1,4 +1,5 @@
-import api from "./api";
+import api, { extractApiResponse } from "./api";
+import { USE_BACKEND_API } from "../config/apiConfig";
 import {
   DEMO_BRANCH_USERS,
   DEMO_BRANCH_BOOKINGS,
@@ -9,66 +10,153 @@ import {
   DEMO_STAFF_REPORTS,
 } from "./authLocalStore";
 
+const mockResponse = (data) =>
+  Promise.resolve({
+    success: true,
+    data,
+  });
+
 /**
- * Branch Service
- * ✔ API thật (comment)
- * ✔ Local mock để chạy demo
+ * ============================================================
+ * USER MANAGEMENT
+ * ============================================================
  */
 
-// helper
-const mockResponse = (data) => Promise.resolve({ data });
+export const getBranchUsers = async (params = {}) => {
+  if (USE_BACKEND_API) {
+    try {
+      const response = await api.get("/api/users", { params });
+      return extractApiResponse(response);
+    } catch (error) {
+      return {
+        success: false,
+        data: [],
+        message: error?.message || "Không thể lấy danh sách user",
+      };
+    }
+  }
 
+  let users = [...DEMO_BRANCH_USERS];
 
-// ========== USER MANAGEMENT ==========
+  if (params?.role && params.role !== "all") {
+    users = users.filter((u) => u.role === params.role);
+  }
 
-// API: GET /api/users (lọc theo chi nhánh ở backend)
-export const getBranchUsers = (params) => {
-  return mockResponse(DEMO_BRANCH_USERS);
+  return mockResponse(users);
 };
 
-// API: GET /api/users/{id}
-export const getBranchUser = (id) => {
-  const user = DEMO_BRANCH_USERS.find((u) => u.id === id);
-  return mockResponse(user);
+export const getBranchUser = async (id) => {
+  if (USE_BACKEND_API) {
+    try {
+      const response = await api.get(`/api/users/${id}`);
+      return extractApiResponse(response);
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error?.message || "Không thể lấy user",
+      };
+    }
+  }
+
+  return mockResponse(DEMO_BRANCH_USERS.find((u) => u.id === id));
 };
 
-// API: POST /api/users
-export const createBranchUser = (userData) => {
+export const createBranchUser = async (userData) => {
+  if (USE_BACKEND_API) {
+    try {
+      const response = await api.post("/api/users", userData);
+      return extractApiResponse(response);
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error?.message || "Không thể tạo user",
+      };
+    }
+  }
+
   const newUser = {
     id: `br-user-${Date.now()}`,
     ...userData,
   };
+
   DEMO_BRANCH_USERS.push(newUser);
+
   return mockResponse(newUser);
 };
 
-// API: PUT /api/users/{id}
-export const updateBranchUser = (id, userData) => {
-  const index = DEMO_BRANCH_USERS.findIndex((u) => u.id === id);
-  if (index !== -1) {
-    DEMO_BRANCH_USERS[index] = {
-      ...DEMO_BRANCH_USERS[index],
-      ...userData,
-    };
-    return mockResponse(DEMO_BRANCH_USERS[index]);
+export const updateBranchUser = async (id, userData) => {
+  if (USE_BACKEND_API) {
+    try {
+      const response = await api.put(`/api/users/${id}`, userData);
+      return extractApiResponse(response);
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error?.message || "Không thể cập nhật user",
+      };
+    }
   }
-  return mockResponse(null);
+
+  const index = DEMO_BRANCH_USERS.findIndex((u) => u.id === id);
+
+  if (index === -1) {
+    return mockResponse(null);
+  }
+
+  DEMO_BRANCH_USERS[index] = {
+    ...DEMO_BRANCH_USERS[index],
+    ...userData,
+  };
+
+  return mockResponse(DEMO_BRANCH_USERS[index]);
 };
 
-// API: DELETE /api/users/{id}
-export const deleteBranchUser = (id) => {
+export const deleteBranchUser = async (id) => {
+  if (USE_BACKEND_API) {
+    try {
+      const response = await api.delete(`/api/users/${id}`);
+      return extractApiResponse(response);
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error?.message || "Không thể xóa user",
+      };
+    }
+  }
+
   const index = DEMO_BRANCH_USERS.findIndex((u) => u.id === id);
+
   if (index !== -1) {
     DEMO_BRANCH_USERS.splice(index, 1);
   }
+
   return mockResponse({ success: true });
 };
 
+/**
+ * ============================================================
+ * BOOKING MANAGEMENT
+ * ============================================================
+ */
 
-// ========== BOOKING MANAGEMENT ==========
+export const getBranchBookings = async (params = {}) => {
+  if (USE_BACKEND_API) {
+    try {
+      const response = await api.get("/api/bookings", { params });
+      return extractApiResponse(response);
+    } catch (error) {
+      return {
+        success: false,
+        data: [],
+        message: error?.message || "Không thể lấy bookings",
+      };
+    }
+  }
 
-// API: GET /api/bookings
-export const getBranchBookings = (params) => {
   let bookings = [...DEMO_BRANCH_BOOKINGS];
 
   if (params?.status) {
@@ -78,60 +166,104 @@ export const getBranchBookings = (params) => {
   return mockResponse(bookings);
 };
 
-// API: GET /api/bookings/{id}
-export const getBranchBookingDetail = (id) => {
-  const booking = DEMO_BRANCH_BOOKINGS.find((b) => b.id === id);
-  return mockResponse(booking);
-};
-
-// API: PUT /api/bookings/{id}
-export const updateBranchBooking = (id, data) => {
-  const index = DEMO_BRANCH_BOOKINGS.findIndex((b) => b.id === id);
-
-  if (index !== -1) {
-    DEMO_BRANCH_BOOKINGS[index] = {
-      ...DEMO_BRANCH_BOOKINGS[index],
-      ...data,
-    };
-    return mockResponse(DEMO_BRANCH_BOOKINGS[index]);
+export const getBranchBookingDetail = async (id) => {
+  if (USE_BACKEND_API) {
+    const response = await api.get(`/api/bookings/${id}`);
+    return extractApiResponse(response);
   }
 
-  return mockResponse(null);
+  return mockResponse(DEMO_BRANCH_BOOKINGS.find((b) => b.id === id));
 };
 
+export const updateBranchBooking = async (id, data) => {
+  if (USE_BACKEND_API) {
+    const response = await api.put(`/api/bookings/${id}`, data);
+    return extractApiResponse(response);
+  }
 
-// ========== REVENUE ==========
+  const index = DEMO_BRANCH_BOOKINGS.findIndex((b) => b.id === id);
 
-// API: GET /api/reports/financial
-export const getBranchRevenue = () => {
+  if (index === -1) {
+    return mockResponse(null);
+  }
+
+  DEMO_BRANCH_BOOKINGS[index] = {
+    ...DEMO_BRANCH_BOOKINGS[index],
+    ...data,
+  };
+
+  return mockResponse(DEMO_BRANCH_BOOKINGS[index]);
+};
+
+/**
+ * ============================================================
+ * REVENUE
+ * ============================================================
+ */
+
+export const getBranchRevenue = async () => {
+  if (USE_BACKEND_API) {
+    const response = await api.get("/api/reports/financial");
+    return extractApiResponse(response);
+  }
+
   return mockResponse(DEMO_BRANCH_REVENUE);
 };
 
-// API: GET /api/reports/financial?type=daily
-export const getBranchDailyRevenue = () => {
+export const getBranchDailyRevenue = async () => {
+  if (USE_BACKEND_API) {
+    const response = await api.get("/api/reports/financial", {
+      params: { type: "daily" },
+    });
+    return extractApiResponse(response);
+  }
+
   return mockResponse(DEMO_BRANCH_REVENUE.daily);
 };
 
-// API: GET /api/reports/financial?type=monthly
-export const getBranchMonthlyRevenue = () => {
+export const getBranchMonthlyRevenue = async () => {
+  if (USE_BACKEND_API) {
+    const response = await api.get("/api/reports/financial", {
+      params: { type: "monthly" },
+    });
+    return extractApiResponse(response);
+  }
+
   return mockResponse(DEMO_BRANCH_REVENUE.monthly);
 };
 
-// API: GET /api/reports/financial?type=summary
-export const getBranchRevenueSummary = () => {
+export const getBranchRevenueSummary = async () => {
+  if (USE_BACKEND_API) {
+    const response = await api.get("/api/reports/financial", {
+      params: { type: "summary" },
+    });
+    return extractApiResponse(response);
+  }
+
   return mockResponse(DEMO_BRANCH_REVENUE.summary);
 };
 
+/**
+ * ============================================================
+ * DASHBOARD
+ * ============================================================
+ */
 
-// ========== DASHBOARD ==========
+export const getBranchDashboard = async () => {
+  if (USE_BACKEND_API) {
+    const response = await api.get("/api/reports/sales");
+    return extractApiResponse(response);
+  }
 
-// API: GET /api/reports/sales
-export const getBranchDashboard = () => {
   return mockResponse(DEMO_BRANCH_DASHBOARD);
 };
 
-// API: GET /api/reports/customers
-export const getBranchStatistics = () => {
+export const getBranchStatistics = async () => {
+  if (USE_BACKEND_API) {
+    const response = await api.get("/api/reports/customers");
+    return extractApiResponse(response);
+  }
+
   return mockResponse({
     customersCount: DEMO_BRANCH_DASHBOARD.totalCustomers,
     todayTickets: DEMO_BRANCH_DASHBOARD.todayTickets,
@@ -140,8 +272,12 @@ export const getBranchStatistics = () => {
   });
 };
 
-// API: GET /api/reports/sales
-export const getBranchSalesReport = () => {
+export const getBranchSalesReport = async () => {
+  if (USE_BACKEND_API) {
+    const response = await api.get("/api/reports/sales");
+    return extractApiResponse(response);
+  }
+
   return mockResponse({
     totalBookings: DEMO_STAFF_REPORTS.sales.totalBookings,
     soldTickets: DEMO_STAFF_REPORTS.sales.soldTickets,
@@ -150,16 +286,27 @@ export const getBranchSalesReport = () => {
   });
 };
 
-// API: GET /api/reports/financial (dữ liệu tài chính staff xem)
-export const getBranchFinancialReport = () => {
+export const getBranchFinancialReport = async () => {
+  if (USE_BACKEND_API) {
+    const response = await api.get("/api/reports/financial");
+    return extractApiResponse(response);
+  }
+
   return mockResponse(DEMO_STAFF_REPORTS.financial);
 };
 
+/**
+ * ============================================================
+ * TICKET MANAGEMENT
+ * ============================================================
+ */
 
-// ========== TICKET MANAGEMENT ==========
+export const getBranchTickets = async (params = {}) => {
+  if (USE_BACKEND_API) {
+    const response = await api.get("/api/tickets", { params });
+    return extractApiResponse(response);
+  }
 
-// API: GET /api/tickets - Get all issued tickets
-export const getBranchTickets = (params) => {
   let tickets = [...DEMO_TICKETS];
 
   if (params?.status) {
@@ -169,53 +316,80 @@ export const getBranchTickets = (params) => {
   return mockResponse(tickets);
 };
 
-// API: GET /api/tickets/{id} - Get ticket detail
-export const getBranchTicketDetail = (id) => {
-  const ticket = DEMO_TICKETS.find((t) => t.id === id);
-  return mockResponse(ticket);
+export const getBranchTicketDetail = async (id) => {
+  if (USE_BACKEND_API) {
+    const response = await api.get(`/api/tickets/${id}`);
+    return extractApiResponse(response);
+  }
+
+  return mockResponse(DEMO_TICKETS.find((t) => t.id === id));
 };
 
-// API: POST /api/tickets - Add ticket manually
-export const createBranchTicket = (ticketData) => {
+export const createBranchTicket = async (ticketData) => {
+  if (USE_BACKEND_API) {
+    const response = await api.post("/api/tickets", ticketData);
+    return extractApiResponse(response);
+  }
+
   const newTicket = {
     id: `ticket-${Date.now()}`,
     status: "issued",
     issueDate: new Date().toISOString(),
     ...ticketData,
   };
+
   DEMO_TICKETS.push(newTicket);
+
   return mockResponse(newTicket);
 };
 
-// API: PUT /api/tickets/{id} - Edit ticket info
-export const updateBranchTicket = (id, data) => {
-  const index = DEMO_TICKETS.findIndex((t) => t.id === id);
-
-  if (index !== -1) {
-    DEMO_TICKETS[index] = {
-      ...DEMO_TICKETS[index],
-      ...data,
-    };
-    return mockResponse(DEMO_TICKETS[index]);
+export const updateBranchTicket = async (id, data) => {
+  if (USE_BACKEND_API) {
+    const response = await api.put(`/api/tickets/${id}`, data);
+    return extractApiResponse(response);
   }
 
-  return mockResponse(null);
+  const index = DEMO_TICKETS.findIndex((t) => t.id === id);
+
+  if (index === -1) {
+    return mockResponse(null);
+  }
+
+  DEMO_TICKETS[index] = {
+    ...DEMO_TICKETS[index],
+    ...data,
+  };
+
+  return mockResponse(DEMO_TICKETS[index]);
 };
 
-// API: DELETE /api/tickets/{id} - Delete ticket
-export const deleteBranchTicket = (id) => {
+export const deleteBranchTicket = async (id) => {
+  if (USE_BACKEND_API) {
+    const response = await api.delete(`/api/tickets/${id}`);
+    return extractApiResponse(response);
+  }
+
   const index = DEMO_TICKETS.findIndex((t) => t.id === id);
+
   if (index !== -1) {
     DEMO_TICKETS.splice(index, 1);
   }
+
   return mockResponse({ success: true });
 };
 
+/**
+ * ============================================================
+ * PAYMENT MANAGEMENT
+ * ============================================================
+ */
 
-// ========== PAYMENT MANAGEMENT ==========
+export const getBranchPayments = async (params = {}) => {
+  if (USE_BACKEND_API) {
+    const response = await api.get("/api/payments", { params });
+    return extractApiResponse(response);
+  }
 
-// API: GET /api/payments - Get all payments
-export const getBranchPayments = (params) => {
   let payments = [...DEMO_PAYMENTS];
 
   if (params?.status) {
@@ -225,35 +399,49 @@ export const getBranchPayments = (params) => {
   return mockResponse(payments);
 };
 
-// API: GET /api/payments/{id} - Get payment detail
-export const getBranchPaymentDetail = (id) => {
-  const payment = DEMO_PAYMENTS.find((p) => p.id === id);
-  return mockResponse(payment);
+export const getBranchPaymentDetail = async (id) => {
+  if (USE_BACKEND_API) {
+    const response = await api.get(`/api/payments/${id}`);
+    return extractApiResponse(response);
+  }
+
+  return mockResponse(DEMO_PAYMENTS.find((p) => p.id === id));
 };
 
-// API: POST /api/payments - Create new payment
-export const createBranchPayment = (paymentData) => {
+export const createBranchPayment = async (paymentData) => {
+  if (USE_BACKEND_API) {
+    const response = await api.post("/api/payments", paymentData);
+    return extractApiResponse(response);
+  }
+
   const newPayment = {
     id: `payment-${Date.now()}`,
     transactionId: `TXN-${Date.now()}`,
     paymentDate: new Date().toISOString(),
     ...paymentData,
   };
+
   DEMO_PAYMENTS.push(newPayment);
+
   return mockResponse(newPayment);
 };
 
-// API: PUT /api/payments/{id} - Update payment status
-export const updateBranchPayment = (id, data) => {
-  const index = DEMO_PAYMENTS.findIndex((p) => p.id === id);
-
-  if (index !== -1) {
-    DEMO_PAYMENTS[index] = {
-      ...DEMO_PAYMENTS[index],
-      ...data,
-    };
-    return mockResponse(DEMO_PAYMENTS[index]);
+export const updateBranchPayment = async (id, data) => {
+  if (USE_BACKEND_API) {
+    const response = await api.put(`/api/payments/${id}`, data);
+    return extractApiResponse(response);
   }
 
-  return mockResponse(null);
+  const index = DEMO_PAYMENTS.findIndex((p) => p.id === id);
+
+  if (index === -1) {
+    return mockResponse(null);
+  }
+
+  DEMO_PAYMENTS[index] = {
+    ...DEMO_PAYMENTS[index],
+    ...data,
+  };
+
+  return mockResponse(DEMO_PAYMENTS[index]);
 };

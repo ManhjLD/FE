@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
     }
 
     flushSync(() => {
-      if (USE_BACKEND_AUTH) {
+      if (USE_BACKEND_API) {
         writeStoredSession(result.data);
       } else {
         localStorage.setItem("token", result.data.token);
