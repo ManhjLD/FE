@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { flushSync } from "react-dom";
 import { USE_BACKEND_API } from "../config/apiConfig";
 import {
   changeCurrentPassword as changeCurrentPasswordLocal,
@@ -65,10 +66,26 @@ export function AuthProvider({ children }) {
       ? await loginApi({ email, password })
       : loginLocalUser({ email, password });
 
+    console.log("🔑 AuthContext.login - auth result:", result);
+
     if (!result.success) {
       return result;
     }
 
+    flushSync(() => {
+      if (USE_BACKEND_API) {
+        writeStoredSession(result.data);
+      } else {
+        localStorage.setItem("token", result.data.token);
+        localStorage.setItem("user", JSON.stringify(result.data.user));
+      }
+      setUser(result.data.user);
+    });
+
+    console.log("✅ AuthContext.login - state updated");
+    console.log("✅ AuthContext.login - returning user:", result.data.user);
+    console.log("✅ User role:", result.data.user?.role);
+    console.log("✅ Full user object:", JSON.stringify(result.data.user, null, 2));
     if (USE_BACKEND_API) {
       writeStoredSession(result.data);
       persistUser(result.data.user);

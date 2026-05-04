@@ -80,7 +80,7 @@ const Navbar = () => {
                   </Link>
 
                   {/* Branch */}
-                  {user?.role === "br_staff" && (
+                  {user?.role === "staff" && (
                     <Link
                       to="/branch"
                       onClick={() => setOpen(false)}
